@@ -1,0 +1,17 @@
+{
+  "name": "no-red-game",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NO RED! endless arcade survival game",
+  "scripts": {
+    "build": "echo 'Static HTML game: no web build step required'",
+    "cap:add:ios": "cap add ios",
+    "cap:sync": "cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^7.4.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.3"
+  }
+}
