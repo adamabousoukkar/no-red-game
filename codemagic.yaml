@@ -1,24 +1,51 @@
 workflows:
   no-red-ios:
-    name: NO RED! iOS (starter)
+    name: NO RED! iOS unsigned build
     max_build_duration: 60
     instance_type: mac_mini_m2
+
     environment:
       vars:
         APP_ID: com.independentstudio.nored
       node: 20
+
     scripts:
       - name: Install dependencies
         script: npm install
-      - name: Generate iOS project if missing
+
+      - name: Generate iOS project
         script: |
           if [ ! -d ios ]; then
             npx cap add ios
           fi
-      - name: Sync web assets
+
+      - name: Sync game into iOS project
         script: npx cap sync ios
-      - name: Check generated Xcode project
-        script: ls -la ios/App
+
+      - name: Compile unsigned iOS app
+        script: |
+          set -euo pipefail
+          mkdir -p build/artifacts build/DerivedData
+
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphoneos \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            build 2>&1 | tee build/xcodebuild.log
+
+      - name: Package compiled app
+        script: |
+          set -euo pipefail
+          APP_PATH="build/DerivedData/Build/Products/Debug-iphoneos/App.app"
+          test -d "$APP_PATH"
+
+          ditto -c -k --sequesterRsrc --keepParent \
+            "$APP_PATH" \
+            build/artifacts/NO_RED_unsigned_App.zip
+
     artifacts:
-      - ios/App/**/*.xcworkspace
-      - ios/App/**/*.xcodeproj
+      - build/artifacts/NO_RED_unsigned_App.zip
+      - build/xcodebuild.log
